@@ -32,12 +32,54 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
    - Run `git log <target>..<source> --pretty=format:"%s" --reverse` to collect commit subjects.
    - Run `git diff <target>...<source> --stat` to get a file change summary.
    - Check branch name for work item IDs (e.g., `feature/12345-description` → work item `12345`).
+   - For each detected work item ID, fetch its title and type:
+     ```bash
+     az boards work-item show --id <ID> --query "{title:fields.\"System.Title\",type:fields.\"System.WorkItemType\"}" -o json
+     ```
+   - Construct the direct URL: `https://dev.azure.com/<ORG>/<PROJECT>/_workitems/edit/<ID>`
+     (use org/project from `az devops configure --list` or the remote URL)
 
 4. **Generate PR title**
-   - If single commit: use the commit subject as the title.
-   - If multiple commits: synthesize a concise title summarizing the overall change.
-   - Keep ≤ 80 characters.
-   - Use imperative mood (e.g., "Add authentication flow", not "Added authentication flow").
+
+   All PR titles **must** follow the conventional commit format:
+   ```
+   <type>(<scope>): <description>
+   ```
+
+   **Type** — choose the one that best reflects the primary change:
+   | Type | Use when |
+   |------|----------|
+   | `feat` | New feature or capability |
+   | `fix` | Bug fix |
+   | `test` | Adding or updating tests (e.g. HIL, unit, integration) |
+   | `refactor` | Code restructuring without behaviour change |
+   | `chore` | Tooling, config, CI, dependency updates |
+   | `docs` | Documentation only |
+   | `perf` | Performance improvement |
+
+   **Scope** — pick the most specific one available:
+   - Use the **work item ID** when one is linked (e.g. `feat(730169): ...`)
+   - Use the **domain or subsystem name** when no work item is available (e.g. `test(HIL): ...`, `fix(auth): ...`, `feat(SDK): ...`)
+
+   **Description**
+   - Lowercase, imperative mood, no trailing period
+   - Describes *what the PR achieves*, not which internal artifact implements it
+   - **Never use raw identifiers verbatim** — no test case IDs (e.g. `TC_*`), function names, class names, or enum values. Translate to human-readable intent.
+   - Keep the full title ≤ 80 characters
+   - **When the PR mixes features, fixes, and chores**, the title reflects the most significant product-facing change — deprioritize tooling/cleanup
+
+   **Title quality checklist:**
+   - [ ] Format is `type(scope): description`
+   - [ ] Free of raw code identifiers
+   - [ ] Lowercase description, imperative mood, ≤ 80 chars total
+   - [ ] Meaningful to a reviewer without codebase context
+
+   **Bad → Good title examples:**
+   - ❌ `Implement TC_ProgramControl_ChangeProgram HIL test` → ✅ `test(HIL): add program change test with programs list UI support`
+   - ❌ `Add getProgramsList and fix getActiveProgram` → ✅ `fix(HIL): correct active program display and expose programs list`
+   - ❌ `Update AuthViewModel.swift` → ✅ `fix(auth): resolve token refresh race condition`
+   - ❌ `Implement feature/12345` → ✅ `feat(12345): add configurable retry logic for network requests`
+   - ❌ `HIL changeVolume test` → ✅ `feat(730169): HIL changeVolume test implementation`
 
 5. **Generate PR description**
    - Use the template in the **PR Description Template** section below.
@@ -78,6 +120,8 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 - Checkbox lists of testing steps
 - Redundant summaries that just restate the diff
 - Auto-generated file lists (the reviewer can see the diff)
+- Raw test case IDs, function names, or internal identifiers without human-readable context
+- Tooling/workflow changes listed at the same level as product features — demote them or group under a separate minor bullet
 
 **Do include:**
 - Clear explanation of *what* changed and *why*
@@ -86,6 +130,13 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 - Notes on specific areas that need careful review
 - Migration steps or deployment considerations if applicable
 - Screenshots or recordings only when UI changes are involved
+- Limitations or known gaps (e.g., if a feature is partially implemented, say so and explain why)
+
+**Grouping changes in the description:**
+- List primary product/feature changes first
+- Group supporting or enabling changes (e.g., new UI helpers, ViewModel additions) together
+- Deprioritize or separate chore/tooling changes — add a `<!-- minor -->` comment or group them under a "Minor / Tooling" sub-bullet
+- If a change is a bug fix bundled into a feature PR, call it out explicitly so reviewers know to look carefully
 
 ## PR Description Template
 
@@ -98,7 +149,7 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 - 
 
 ## Work Items
-- AB#<ID>
+- [AB#<ID> — <Work Item Title>](<https://dev.azure.com/<ORG>/<PROJECT>/_workitems/edit/<ID>>) `<Type>`
 
 ## Review Notes
 <!-- Optional: areas needing careful review, design decisions, trade-offs, migration steps -->
@@ -111,7 +162,7 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 The `--description` flag doesn't support `@file` syntax. For multiline markdown, write to a variable or use `$'...'` syntax:
 
 ```bash
-DESC=$'## Summary\nRefactor auth middleware for clearer error handling.\n\n## Changes\n- Extract token validation into dedicated module\n- Add structured error responses\n\n## Work Items\n- AB#4567\n\n## Review Notes\n- Pay attention to the error code mapping in `auth/errors.ts`'
+DESC=$'## Summary\nRefactor auth middleware for clearer error handling.\n\n## Changes\n- Extract token validation into dedicated module\n- Add structured error responses\n\n## Work Items\n- [AB#4567 — Refactor auth middleware error handling](https://dev.azure.com/MyOrg/MyProject/_workitems/edit/4567) `User Story`\n\n## Review Notes\n- Pay attention to the error code mapping in `auth/errors.ts`'
 
 az repos pr create \
   --title "Refactor auth middleware error handling" \
@@ -214,15 +265,26 @@ az repos pr create --source-branch main
 
 ## Examples
 
-Good PR title from single commit:
+Good PR title from single commit (work item in scope):
 ```
-Add JWT-based authentication to user API
+feat(730169): HIL changeVolume test implementation
+```
+
+Good PR title from single commit (domain in scope):
+```
+test(HIL): add hardware-in-the-loop test infrastructure
 ```
 
 Good PR title synthesized from multiple commits:
 ```
-Implement order processing pipeline with validation and notifications
+feat(12345): implement order processing pipeline with validation
 ```
+
+Good PR title when the PR mixes a HIL test + supporting UI + a bug fix:
+```
+test(HIL): add program change test with programs list UI support
+```
+(Not: `Implement TC_ProgramControl_ChangeProgram HIL test` — missing format, uses raw test ID.)
 
 Good draft PR:
 ```bash
