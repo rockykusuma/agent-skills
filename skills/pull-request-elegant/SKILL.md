@@ -149,7 +149,7 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 - 
 
 ## Work Items
-- [AB#<ID> — <Work Item Title>](<https://dev.azure.com/<ORG>/<PROJECT>/_workitems/edit/<ID>>) `<Type>`
+- [<Work Item Title>](https://dev.azure.com/<ORG>/<PROJECT>/_workitems/edit/<ID>) `<Type>` <!-- #<ID> -->
 
 ## Review Notes
 <!-- Optional: areas needing careful review, design decisions, trade-offs, migration steps -->
@@ -162,7 +162,7 @@ az devops configure -d organization=https://dev.azure.com/<ORG> project=<PROJECT
 The `--description` flag doesn't support `@file` syntax. For multiline markdown, write to a variable or use `$'...'` syntax:
 
 ```bash
-DESC=$'## Summary\nRefactor auth middleware for clearer error handling.\n\n## Changes\n- Extract token validation into dedicated module\n- Add structured error responses\n\n## Work Items\n- [AB#4567 — Refactor auth middleware error handling](https://dev.azure.com/MyOrg/MyProject/_workitems/edit/4567) `User Story`\n\n## Review Notes\n- Pay attention to the error code mapping in `auth/errors.ts`'
+DESC=$'## Summary\nRefactor auth middleware for clearer error handling.\n\n## Changes\n- Extract token validation into dedicated module\n- Add structured error responses\n\n## Work Items\n- [Refactor auth middleware error handling](https://dev.azure.com/MyOrg/MyProject/_workitems/edit/4567) `User Story` <!-- #4567 -->\n\n## Review Notes\n- Pay attention to the error code mapping in `auth/errors.ts`'
 
 az repos pr create \
   --title "Refactor auth middleware error handling" \
