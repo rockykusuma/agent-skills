@@ -21,6 +21,23 @@ Crafts clean, expressive git commits using emoji conventional commit format. Ful
 npx skills add rockykusuma/agent-skills@commit-elegant
 ```
 
+### pull-request-elegant
+
+Creates professional pull requests on Azure DevOps using the `az repos pr` CLI.
+
+**Features:**
+- 7-step workflow: validate → push → gather context → title → description → create → confirm
+- Smart work item extraction from branch names
+- Lean PR description template focused on substance over ceremony
+- Full `az repos pr` CLI reference (create, update, draft, reviewers, votes, policies)
+- Multiline markdown description handling
+- Edge case and anti-pattern guidance
+
+**Install:**
+```bash
+npx skills add rockykusuma/agent-skills@pull-request-elegant
+```
+
 ## License
 
 MIT
