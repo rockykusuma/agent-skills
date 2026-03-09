@@ -21,6 +21,22 @@ Crafts clean, expressive git commits using emoji conventional commit format. Ful
 npx skills add rockykusuma/agent-skills@commit-elegant
 ```
 
+### commit-push-elegant
+
+Commit and push in one workflow. Uses **commit-elegant** style for crafting commits, then pushes to remote — including automatic upstream setup for new branches.
+
+**Features:**
+- Full commit-elegant workflow (pre-commit checks, auto-staging, diff analysis, commit splitting)
+- Automatic upstream detection and `git push -u origin <branch>` for new branches
+- Push failure handling with rebase suggestions
+- Safe force-push guidance (`--force-with-lease` only when explicitly requested)
+- Edge case handling (amend + force push, detached HEAD, protected branches, no remote)
+
+**Install:**
+```bash
+npx skills add rockykusuma/agent-skills@commit-push-elegant
+```
+
 ### pull-request-elegant
 
 Creates professional pull requests on Azure DevOps using the `az repos pr` CLI.
