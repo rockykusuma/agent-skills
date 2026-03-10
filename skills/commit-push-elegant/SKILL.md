@@ -1,5 +1,5 @@
 ---
-name: commit-push
+name: commit-push-elegant
 description: Commits changes using emoji conventional commit format (commit-elegant style) and pushes to remote in one workflow. Handles pre-commit verification, auto-staging, diff analysis, logical commit splitting, writing clear imperative commit messages, and pushing — including setting the upstream branch if not yet configured. Use this skill when the user wants to commit and push in one go.
 ---
 
