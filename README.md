@@ -54,6 +54,24 @@ Creates professional pull requests on Azure DevOps using the `az repos pr` CLI.
 npx skills add rockykusuma/agent-skills@pull-request-elegant
 ```
 
+### coral-minimal-deck
+
+Generates polished PowerPoint decks via `pptxgenjs` in a distinctive "coral minimal" aesthetic — coral (`FF5A36`) accent on white with slate-900 sandwich slides. Built for "designed", "modern", "clean" deck requests that should not look template-generated.
+
+**Features:**
+- 5-step workflow: gather → setup → write → render/QA → deliver
+- Env-aware setup, render, and delivery blocks (Claude.ai sandbox vs local Claude Code CLI)
+- Drop-in `template.js` with full palette, fonts, and 6 helpers (`addChrome`, `addTitle`, `addCard`, `arrowRight/Left/Down`, `addCode`)
+- 17 slide-layout recipes: title, two-column comparison, icon-card grid, sequence diagram, multi-lane data flow, state machine, layered architecture, struct/type, table, full-bleed code, side-by-side code+diagram, UI mockup, numbered takeaway, big-stat callout, closing, and more
+- Syntax-colored code blocks tuned for the dark panel background
+- Captures known `pptxgenjs` gotchas (no `\n` in text runs, no `#` in hex, shared opts mutation, arrowhead rendering)
+- Brand-color override path (swap `accent` + `accentSoft` only, keep everything else)
+
+**Install:**
+```bash
+npx skills add rockykusuma/agent-skills@coral-minimal-deck
+```
+
 ## License
 
 MIT
