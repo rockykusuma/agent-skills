@@ -2,6 +2,19 @@
 
 A collection of skills for AI coding agents.
 
+## Repository scope
+
+This repo is content-first — skills are markdown specs (`SKILL.md`) plus optional supporting files. There is no shared JS toolchain at the repo root, so don't expect a `package.json`, `npm test`, or workspace linter. Individual skills that ship executable assets (e.g. `coral-minimal-deck/assets/template.js`) own their own verification and are checked by per-skill CI in `.github/workflows/`.
+
+## Skill structure
+
+Every skill lives in `skills/<skill-name>/` and must have a `SKILL.md` at its root with YAML frontmatter (`name`, `description`). Beyond that, two conventions:
+
+- `assets/` — executable templates, snippets, or anything the agent copies into the user's workspace and runs. Example: `skills/coral-minimal-deck/assets/template.js`.
+- `references/` — long-form documentation the agent reads on demand (palette tables, layout catalogs, helper API docs). Keep `SKILL.md` lean and push the deep dives in here.
+
+Both directories are optional. Flat skills (`commit-elegant`, `pull-request-elegant`) skip them entirely. The `skills` CLI copies the whole skill directory on install, so subdirectories work out of the box.
+
 ## Skills
 
 ### commit-elegant
