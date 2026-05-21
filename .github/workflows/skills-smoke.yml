@@ -1,0 +1,50 @@
+name: skills-smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "skills/coral-minimal-deck/**"
+      - ".github/workflows/skills-smoke.yml"
+
+jobs:
+  coral-minimal-deck:
+    name: coral-minimal-deck template smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pptxgenjs
+        run: npm install --no-save pptxgenjs
+
+      - name: Syntax check template.js
+        run: node --check skills/coral-minimal-deck/assets/template.js
+
+      - name: Require template (no file write — uses require.main guard)
+        run: |
+          node -e "
+            const t = require('./skills/coral-minimal-deck/assets/template.js');
+            const required = ['pres', 'C', 'F', 'CODE', 'CODE_BLANK', 'W', 'H', 'MARGIN', 'TOTAL'];
+            for (const k of required) {
+              if (!(k in t)) { console.error('Missing export: ' + k); process.exit(1); }
+            }
+            if (t.C.accent !== 'FF5A36') {
+              console.error('Coral accent drifted from FF5A36: ' + t.C.accent);
+              process.exit(1);
+            }
+            console.log('Template loaded. Exports present. Accent locked.');
+          "
+
+      - name: Render template end-to-end
+        run: |
+          mkdir -p /tmp/deck && cd /tmp/deck
+          cp $GITHUB_WORKSPACE/skills/coral-minimal-deck/assets/template.js ./build.js
+          ln -s $GITHUB_WORKSPACE/node_modules ./node_modules
+          node build.js
+          test -s Presentation.pptx || { echo "Presentation.pptx not produced"; exit 1; }
+          echo "Rendered $(stat -c%s Presentation.pptx) bytes"
