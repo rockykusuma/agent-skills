@@ -9,3 +9,10 @@ node_modules/
 *.pptx
 *.pdf
 slide-*.jpg
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.tmp
