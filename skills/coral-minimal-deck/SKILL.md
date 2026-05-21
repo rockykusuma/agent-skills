@@ -31,7 +31,37 @@ Skip this step if the user's request already answers all three (e.g. "rebuild my
 
 Pick a working dir, copy the template, ensure `pptxgenjs` is reachable.
 
-`SKILL_DIR` below = the directory containing this `SKILL.md` (i.e. the skill's own root). Resolve it from the path the harness gave you when loading the skill.
+#### Locating `SKILL_DIR`
+
+`SKILL_DIR` is the directory containing this `SKILL.md` (i.e. the skill's own root, with `assets/` and `references/` inside it). The `skills` CLI installs to one of a few well-known locations depending on scope and agent — resolve it by checking them in order:
+
+```bash
+# Walk standard install locations; stop at the first hit that has assets/template.js
+for candidate in \
+  "./.claude/skills/coral-minimal-deck" \
+  "$HOME/.claude/skills/coral-minimal-deck" \
+  "${CLAUDE_PROJECT_DIR:-.}/.claude/skills/coral-minimal-deck" \
+  "/mnt/skills/coral-minimal-deck"; do
+  if [ -f "$candidate/assets/template.js" ]; then
+    SKILL_DIR="$candidate"
+    break
+  fi
+done
+
+if [ -z "$SKILL_DIR" ]; then
+  echo "ERROR: cannot locate coral-minimal-deck SKILL_DIR" >&2
+  echo "Reinstall: npx skills add rockykusuma/agent-skills --skill coral-minimal-deck" >&2
+  exit 1
+fi
+echo "Using SKILL_DIR=$SKILL_DIR"
+```
+
+Verified install paths:
+- `./.claude/skills/coral-minimal-deck/` — Claude Code, project scope (default when inside a project)
+- `~/.claude/skills/coral-minimal-deck/` — Claude Code, user/global scope (`skills add -g`)
+- `/mnt/skills/coral-minimal-deck/` — Claude.ai sandbox
+
+#### Environment-specific setup
 
 **Claude.ai sandbox** (writable `/home/claude`, npm-global at `/home/claude/.npm-global`):
 
@@ -75,23 +105,42 @@ Build incrementally. Add slides in batches of 3–5, then `node build.js` to cat
 node build.js   # writes Presentation.pptx
 ```
 
-Convert to PDF, then to JPGs (one per slide) for visual inspection. Pick the conversion path that fits the environment:
+Convert to PDF, then to JPGs (one per slide) for visual inspection. Pick the conversion path that fits the environment.
 
-**Claude.ai sandbox** — soffice helper is preinstalled:
+#### Preflight (run before PDF conversion)
 
 ```bash
-python3 /mnt/skills/public/pptx/scripts/office/soffice.py --headless --convert-to pdf Presentation.pptx
+# Pick the soffice driver available in this env. Fail fast w/ install hint.
+SOFFICE_HELPER="/mnt/skills/public/pptx/scripts/office/soffice.py"
+if [ -f "$SOFFICE_HELPER" ]; then
+  CONVERT_CMD="python3 $SOFFICE_HELPER"
+elif command -v soffice >/dev/null 2>&1; then
+  CONVERT_CMD="soffice"
+else
+  echo "ERROR: no soffice / LibreOffice on PATH and no sandbox helper at" >&2
+  echo "       $SOFFICE_HELPER" >&2
+  echo "" >&2
+  echo "Install LibreOffice:" >&2
+  echo "  macOS:  brew install --cask libreoffice" >&2
+  echo "  Debian: sudo apt install libreoffice" >&2
+  echo "  Fedora: sudo dnf install libreoffice" >&2
+  echo "  Arch:   sudo pacman -S libreoffice-still" >&2
+  exit 1
+fi
+
+if ! command -v pdftoppm >/dev/null 2>&1; then
+  echo "ERROR: pdftoppm not on PATH (part of poppler-utils)" >&2
+  echo "Install:" >&2
+  echo "  macOS:  brew install poppler" >&2
+  echo "  Debian: sudo apt install poppler-utils" >&2
+  exit 1
+fi
 ```
 
-**Local / Claude Code CLI** — use LibreOffice directly (install via `brew install --cask libreoffice` on macOS, or `apt install libreoffice` on Linux):
+#### Convert + rasterize
 
 ```bash
-soffice --headless --convert-to pdf Presentation.pptx
-```
-
-Then in either env:
-
-```bash
+$CONVERT_CMD --headless --convert-to pdf Presentation.pptx
 rm -f slide-*.jpg
 pdftoppm -jpeg -r 100 Presentation.pdf slide
 ```
