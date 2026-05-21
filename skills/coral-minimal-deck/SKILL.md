@@ -56,7 +56,16 @@ If pptxgenjs isn't installed: sandbox → `npm install -g pptxgenjs`; local → 
 
 ### 3 — Write the slides
 
-The template ships with a fully-formed design system (colors, fonts, helpers) and one example slide. Read `references/layout-patterns.md` to see the catalog of slide patterns and pick ones that fit each piece of the user's content. Don't force every slide into the same layout — variety is the whole point.
+Before adding slides, set the deck metadata at the top of `build.js`:
+
+```js
+pres.author = "<the user, or their org>";
+pres.title  = "<the deck title>";
+```
+
+These end up as the PowerPoint file's Author/Title properties — leaving them empty makes the file look unfinished when opened.
+
+The template ships with a fully-formed design system (colors, fonts, helpers) and a few example slides (title / content / closing / tall-code stress test). Read `references/layout-patterns.md` to see the catalog of slide patterns and pick ones that fit each piece of the user's content. Don't force every slide into the same layout — variety is the whole point.
 
 Build incrementally. Add slides in batches of 3–5, then `node build.js` to catch syntax errors before piling on more. Don't write all 20 slides in one shot only to find a typo on slide 4 broke everything.
 
