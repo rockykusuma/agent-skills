@@ -176,13 +176,18 @@ const CODE = {
   decorator: "FFB86C", // @State, @Observable
 };
 
+// Blank line marker for addCode. addCode needs at least one run per line to
+// attach breakLine, so empty arrays won't render — use this when you want
+// vertical spacing inside a code block.
+const CODE_BLANK = [{ text: " ", color: CODE.text }];
+
 // ═════════════════════════════════════════════════════════════════════════
 // SLIDES
 // Replace these example slides with your own. Each slide is in its own
 // { } block so they're easy to find, reorder, and edit independently.
 // ═════════════════════════════════════════════════════════════════════════
 
-const TOTAL = 3;  // update to match actual slide count
+const TOTAL = 4;  // update to match actual slide count
 
 // ─── Slide 1: TITLE (dark slate) ────────────────────────────────────────
 {
@@ -244,7 +249,57 @@ const TOTAL = 3;  // update to match actual slide count
   );
 }
 
-// ─── Slide 3: CLOSING (dark slate, mirrors title slide) ─────────────────
+// ─── Slide 3: TALL CODE BLOCK (visual-QA stress test for addCode) ───────
+// Delete this slide before shipping real decks. Its only purpose is to
+// exercise the addCode height heuristic against a worst-case ~25-line
+// block so layout drift in pptxgenjs gets caught early.
+{
+  const slide = pres.addSlide();
+  slide.background = { color: C.bg };
+  addChrome(slide, "QA · addCode stress", 3, TOTAL);
+  addTitle(slide, "Tall code block test", "If the last line clips the panel, the heuristic in addCode needs a bigger fudge.");
+
+  addCode(slide, MARGIN, 2.15, W - 2 * MARGIN, [
+    [{ text: "// 25-line worst case for addCode height calc", color: CODE.comment, italic: true }],
+    CODE_BLANK,
+    [
+      { text: "class", color: CODE.keyword, bold: true },
+      { text: " Streamer", color: CODE.type },
+      { text: " {", color: CODE.text },
+    ],
+    [{ text: "  let id: Int32", color: CODE.text }],
+    [{ text: "  let name: String", color: CODE.text }],
+    [{ text: "  var rssi: Int8", color: CODE.text }],
+    [{ text: "  var isAvailable: Bool", color: CODE.text }],
+    CODE_BLANK,
+    [
+      { text: "  func", color: CODE.keyword, bold: true },
+      { text: " scan", color: CODE.fn },
+      { text: "() {", color: CODE.text },
+    ],
+    [{ text: "    // start a discovery sweep", color: CODE.comment, italic: true }],
+    [{ text: "    let session = Session()", color: CODE.text }],
+    [{ text: "    session.start()", color: CODE.text }],
+    [{ text: "    return session", color: CODE.text }],
+    [{ text: "  }", color: CODE.text }],
+    CODE_BLANK,
+    [
+      { text: "  func", color: CODE.keyword, bold: true },
+      { text: " join", color: CODE.fn },
+      { text: "(id: ", color: CODE.text },
+      { text: "Int32", color: CODE.type },
+      { text: ") {", color: CODE.text },
+    ],
+    [{ text: "    guard isAvailable else { return }", color: CODE.text }],
+    [{ text: "    transport.connect(id)", color: CODE.text }],
+    [{ text: "  }", color: CODE.text }],
+    CODE_BLANK,
+    [{ text: "  // last line — must stay inside the dark panel", color: CODE.comment, italic: true }],
+    [{ text: "}", color: CODE.text }],
+  ], { fontSize: 10, lineSpacing: 1.18, padTop: 0.15 });
+}
+
+// ─── Slide 4: CLOSING (dark slate, mirrors title slide) ─────────────────
 {
   const slide = pres.addSlide();
   slide.background = { color: C.bgDark };
@@ -286,7 +341,15 @@ const TOTAL = 3;  // update to match actual slide count
 
 // ═════════════════════════════════════════════════════════════════════════
 // WRITE
+// Only emit the file when run directly (node build.js). When required from
+// another module — e.g. a CI smoke test that just wants to confirm the
+// template loads and the design system is intact — skip the write so the
+// caller decides what to do with `pres`.
 // ═════════════════════════════════════════════════════════════════════════
-pres.writeFile({ fileName: "Presentation.pptx" })
-  .then((f) => console.log("Wrote:", f))
-  .catch((e) => { console.error(e); process.exit(1); });
+if (require.main === module) {
+  pres.writeFile({ fileName: "Presentation.pptx" })
+    .then((f) => console.log("Wrote:", f))
+    .catch((e) => { console.error(e); process.exit(1); });
+}
+
+module.exports = { pres, C, F, CODE, CODE_BLANK, W, H, MARGIN, TOTAL };

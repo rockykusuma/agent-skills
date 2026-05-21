@@ -152,7 +152,17 @@ Reference `CODE.keyword`, `CODE.type`, `CODE.string`, `CODE.fn`, `CODE.comment`,
 
 ### Empty lines
 
-To get a blank line in the rendered output, include `[{ text: " ", color: CODE.text }]` — a single space. An empty array won't work because there are no runs to attach the breakLine to.
+Use the exported `CODE_BLANK` constant when you want vertical space inside a code block:
+
+```js
+addCode(slide, MARGIN, 2.5, W - 2*MARGIN, [
+  [{ text: "func scan() {", color: CODE.text }],
+  CODE_BLANK,
+  [{ text: "}", color: CODE.text }],
+]);
+```
+
+Internally it's `[{ text: " ", color: CODE.text }]` — a single space. An empty array won't work because there are no runs to attach the breakLine to, but the named constant makes the intent obvious and survives "tidying" edits.
 
 ### Long code blocks
 
@@ -177,6 +187,7 @@ The template exports these at module scope for use throughout your slides:
 | `C` | object | Color palette — see [design-system.md](design-system.md) |
 | `F` | object | Fonts — `F.sans`, `F.sansBold`, `F.mono` |
 | `CODE` | object | Code syntax color palette |
+| `CODE_BLANK` | array | Pre-built single-space line for blank rows inside `addCode` |
 
 ## Patterns the helpers DON'T cover (do these inline)
 
